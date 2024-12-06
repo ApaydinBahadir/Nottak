@@ -1,5 +1,14 @@
-class return_data {
-  constructor(success: Boolean, text: String, data: Array<any>) {}
-}
-
-export default return_data;
+class ReturnData {
+    success: boolean;
+    text: string;
+    data: any[];
+  
+    constructor(success: boolean, text: string, data: any[]) {
+      this.success = success;
+      this.text = text;
+      this.data = data;
+    }
+  }
+  
+  export default ReturnData;
+  
