@@ -1,17 +1,18 @@
 import express from "express";
+import {
+  create_note,
+  delete_by_id,
+  list_by_user_id,
+  show_by_id,
+  update_note,
+} from "../controllers/note_controller";
 
 const note_route = express.Router();
 
-note_route.get("/show/:note_id" /* TODO: ADD FUNCTION*/);
-note_route.get("/list" /* TODO: ADD FUNCTION*/);
-note_route.post("/create_note" /* TODO: ADD FUNCTION*/);
-note_route.post("/delete/:note_route" /* TODO: ADD FUNCTION*/);
-
-/*
-TODO:Get List By Tag
-TODO:Get List Data Range
-TODO:Get List By Title
-TODO:Get List By User
-*/
+note_route.get("/show", show_by_id);
+note_route.get("/list", list_by_user_id);
+note_route.post("/create", create_note);
+note_route.post("/delete", delete_by_id);
+note_route.post("/update", update_note);
 
 export default note_route;

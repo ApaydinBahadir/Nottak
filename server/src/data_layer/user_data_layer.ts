@@ -1,4 +1,4 @@
-import Database from "../data_access/database_connection";
+import Database from "./database_connection";
 import User from "../entities/user";
 import return_data from "../utils/return_data";
 

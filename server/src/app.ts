@@ -9,7 +9,7 @@ const corsOptions = { credentials: true, origin: process.env.URL || "*" };
 
 app.use(cors(corsOptions));
 app.use(json());
-app.use("/api/notes", note_route);
+app.use("/api/note", note_route);
 app.use("/api/user", user_route);
 
 app.get("/", (req: Request, res: Response) => {

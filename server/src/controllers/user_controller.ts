@@ -3,7 +3,7 @@ import {
   db_create_user,
   db_delete_user_by_id,
   db_find_user_by_id,
-} from "../data_access/user_data_access";
+} from "../data_layer/user_data_layer";
 import User from "../entities/user";
 
 // Create a new user
@@ -12,7 +12,7 @@ export async function create_user(req: Request, res: Response): Promise<any> {
 
   // Validate input
   if (!username || !email || !password) {
-    return res.status(400).json({ message: "All fields are required" });
+    return res.status(400).json({ message: "All fields are required. \n username, email, password." });
   }
 
   // Create a new user instance

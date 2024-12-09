@@ -1,5 +1,9 @@
 import express from "express";
-import { create_user, delete_by_user_id, find_user_by_id } from "../controllers/user_controller";
+import {
+  create_user,
+  delete_by_user_id,
+  find_user_by_id,
+} from "../controllers/user_controller";
 
 const user_route = express.Router();
 
