@@ -3,6 +3,7 @@ import {
   db_create_user,
   db_delete_user_by_id,
   db_find_user_by_id,
+  db_login_user,
 } from "../data_layer/user_data_layer";
 import User from "../entities/user";
 
@@ -12,7 +13,9 @@ export async function create_user(req: Request, res: Response): Promise<any> {
 
   // Validate input
   if (!username || !email || !password) {
-    return res.status(400).json({ message: "All fields are required. \n username, email, password." });
+    return res.status(400).json({
+      message: "All fields are required. \n username, email, password.",
+    });
   }
 
   // Create a new user instance
@@ -78,9 +81,7 @@ export async function delete_by_user_id(
   }
 
   try {
-    console.log("heheyt");
     const result = await db_delete_user_by_id(user_id as string);
-    console.log("heheyt2");
 
     if (result.success && result.data.length > 0) {
       return res
@@ -96,5 +97,41 @@ export async function delete_by_user_id(
     return res
       .status(500)
       .json({ message: "An unexpected error occurred", error: error });
+  }
+}
+
+export async function login_user(req: Request, res: Response): Promise<any> {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res
+      .status(400)
+      .json({ message: "Please provide both username and password" });
+  }
+
+  try {
+    const userResponse = await db_login_user(username);
+
+    if (!userResponse.success || !userResponse.data.length) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    const user = userResponse.data[0];
+
+    // Directly compare passwords (for simplicity/testing only, **NOT secure for production**)
+    if (password !== user.password) {
+      return res.status(401).json({ message: "Invalid username or password" });
+    }
+
+    // Save user information to session
+    req.session.user = { id: user.id, username: user.username };
+
+    return res.status(200).json({
+      message: "Login successful",
+      user: { id: user.id, username: user.username },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 }

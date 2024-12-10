@@ -1,4 +1,4 @@
-import Database from "./database_connection";
+import Database from "../utils/database_connection";
 import User from "../entities/user";
 import return_data from "../utils/return_data";
 
@@ -62,5 +62,22 @@ export async function db_delete_user_by_id(user_id: string) {
   } catch (error) {
     console.error("Error deleting user:", error);
     return new return_data(false, "Error deleting user", [error]);
+  }
+}
+
+export async function db_login_user(username: string) {
+  const query = `
+      SELECT id, username, password FROM users WHERE username = $1;
+    `;
+
+  try {
+    const result = await db.query(query, [username]); // Securely pass parameters to avoid SQL injection
+    if (result.rows.length > 0) {
+      return new return_data(true, "User found", [result.rows[0]]);
+    } else {
+      return new return_data(false, "User not found", []);
+    }
+  } catch (error) {
+    return new return_data(false, "Error during user login", [error]);
   }
 }
