@@ -9,7 +9,7 @@ export const isAuthenticated = (
   console.log("req.session:", req.session);
 
   if (req.session?.user) {
-    next(); // User is logged in
+    next(); // User is logged
   } else {
     res
       .status(401)

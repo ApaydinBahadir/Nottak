@@ -4,6 +4,7 @@ import Note from "../entities/note";
 
 const db = Database.getInstance();
 
+//Create notes in database. It is takes notes entity as parameter
 export async function db_create_note(note: Note) {
   const query = `
   INSERT INTO notes (title, content, created_at, updated_at, user_id)
@@ -23,6 +24,7 @@ export async function db_create_note(note: Note) {
   }
 }
 
+//Showing a note specified by id. Function takes note_id:string as parameter.
 export async function db_show_notes_by_note_id(note_id: string) {
   const query = `
     SELECT *
@@ -39,6 +41,7 @@ export async function db_show_notes_by_note_id(note_id: string) {
   }
 }
 
+//Deleting a note specified by id. Function takes note_id:string as paramater.
 export async function db_delete_by_note_id(note_id: string) {
   const query = `
       DELETE FROM notes WHERE id = $1 RETURNING *;
@@ -48,11 +51,9 @@ export async function db_delete_by_note_id(note_id: string) {
     const result = await db.query(query, [note_id]);
 
     if (result.rowCount === 0) {
-      // No note was deleted
       return new return_data(false, "Note not found", []);
     }
 
-    // Return the deleted note's details
     return new return_data(true, "Note deleted successfully", result.rows);
   } catch (error) {
     console.error("Error deleting note:", error);
@@ -60,6 +61,14 @@ export async function db_delete_by_note_id(note_id: string) {
   }
 }
 
+// Getting list of notes specified by user_id.
+//It is require user_id:string
+//Can be more detalied as optional paramater
+//Such as:
+//date_start:Date
+//date_end:Date
+//tags:string[]
+//title:string
 export async function db_list_notes(
   user_id: string,
   options?: {
@@ -77,7 +86,7 @@ export async function db_list_notes(
         `;
   const queryParams: any[] = [user_id];
 
-  // Add dynamic conditions
+  // dynamic conditions
   if (options?.date_start) {
     query += ` AND n.created_at >= $${queryParams.length + 1}`;
     queryParams.push(options.date_start);
@@ -94,7 +103,7 @@ export async function db_list_notes(
   }
 
   if (options?.tags && options.tags.length > 0) {
-    query += ` AND n.tags && $${queryParams.length + 1}`; // Assuming `tags` is a PostgreSQL array
+    query += ` AND n.tags && $${queryParams.length + 1}`; // TODO:make sure tags is array in database too
     queryParams.push(options.tags);
   }
 
@@ -107,6 +116,16 @@ export async function db_list_notes(
   }
 }
 
+// updates a note specified by note_id.
+//It is require note_id:string
+//Can be more detailed as optional paramater
+//Such as:
+//content:string
+//title:string
+//tags:string[]
+//title:string
+//date_start:Date
+//date_end:Date
 export async function db_update_note(
   note_id: string,
   options?: {
@@ -131,6 +150,7 @@ export async function db_update_note(
     `;
 
   try {
+    // dynamic conditions dealed by COALESCE
     const result = await db.query(query, [
       options?.content || null,
       options?.title || null,

@@ -1,5 +1,7 @@
 import Database from "./database_connection";
 
+
+// For "morgan" framework. Log-to-database function
 async function save_log(
   method: string,
   url: string,

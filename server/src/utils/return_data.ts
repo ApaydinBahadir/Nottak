@@ -1,3 +1,5 @@
+//used for data access to controller. Can be function i think?
+
 class return_data {
   success: boolean;
   text: string;

@@ -10,6 +10,8 @@ import { isAuthenticated } from "../middleware/authentication";
 
 const note_route = express.Router();
 
+//All of them is authenticated
+
 note_route.get("/show", isAuthenticated, show_by_id);
 note_route.get("/list", isAuthenticated, list_by_user_id);
 note_route.post("/create", isAuthenticated, create_note);

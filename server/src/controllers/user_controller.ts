@@ -7,22 +7,19 @@ import {
 } from "../data_layer/user_data_layer";
 import User from "../entities/user";
 
-// Create a new user
+// Create a new user. Taking username,email,password in body
 export async function create_user(req: Request, res: Response): Promise<any> {
   const { username, email, password } = req.body;
 
-  // Validate input
   if (!username || !email || !password) {
     return res.status(400).json({
       message: "All fields are required. \n username, email, password.",
     });
   }
 
-  // Create a new user instance
   const user = new User(username, email, password, []);
 
   try {
-    // Attempt to save the user
     const result = await db_create_user(user);
     if (result.success) {
       return res.status(200).json({ message: "User created successfully" });
@@ -30,7 +27,6 @@ export async function create_user(req: Request, res: Response): Promise<any> {
       return res.status(500).json({ message: "Failed to create user" });
     }
   } catch (error) {
-    // Catch any error during user creation
     console.error("Error creating user:", error);
     return res
       .status(500)
@@ -38,7 +34,8 @@ export async function create_user(req: Request, res: Response): Promise<any> {
   }
 }
 
-// Find a user by ID
+// Find a user by ID takes user_id as query.
+//TODO:Try to make it paramater
 export async function find_user_by_id(
   req: Request,
   res: Response
@@ -67,7 +64,8 @@ export async function find_user_by_id(
   }
 }
 
-// Delete a user by ID
+// Delete a user by ID. Takes user_id from query.
+//TODO:Try to make it paramater?
 export async function delete_by_user_id(
   req: Request,
   res: Response
@@ -100,6 +98,8 @@ export async function delete_by_user_id(
   }
 }
 
+//Make sure user get login and start session for user.
+//Takes username, password as body
 export async function login_user(req: Request, res: Response): Promise<any> {
   const { username, password } = req.body;
 
@@ -118,12 +118,11 @@ export async function login_user(req: Request, res: Response): Promise<any> {
 
     const user = userResponse.data[0];
 
-    // Directly compare passwords (for simplicity/testing only, **NOT secure for production**)
+    //TODO:password Hash
     if (password !== user.password) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
 
-    // Save user information to session
     req.session.user = { id: user.id, username: user.username };
 
     return res.status(200).json({

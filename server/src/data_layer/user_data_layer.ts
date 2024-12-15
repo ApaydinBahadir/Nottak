@@ -4,7 +4,7 @@ import return_data from "../utils/return_data";
 
 const db = Database.getInstance();
 
-// Create user in the database
+// Create user in the database, Function taking User entity as paramater
 export async function db_create_user(user: User): Promise<return_data> {
   const query = `
     INSERT INTO users (username, email, password, created_at, updated_at)
@@ -18,21 +18,21 @@ export async function db_create_user(user: User): Promise<return_data> {
       user.email,
       user.password,
     ]);
-    return new return_data(true, "User created", []); // Success message should be clear
+    return new return_data(true, "User created", []);
   } catch (error) {
     console.error("Error creating user:", error);
-    return new return_data(false, "Error when user created", [error]); // Provide more specific error
+    return new return_data(false, "Error when user created", [error]);
   }
 }
 
-// Find user by ID
+// Find user by ID, Taking user_id as string as parameter
 export async function db_find_user_by_id(user_id: string) {
   const query = `
       SELECT * FROM users WHERE id = $1;
     `;
 
   try {
-    const result = await db.query(query, [user_id]); // Correctly passing user_id as a parameter
+    const result = await db.query(query, [user_id]);
     console.log("User found:", result.rows[0]);
     return new return_data(true, "User found", [result.rows[0]]);
   } catch (error) {
@@ -40,23 +40,21 @@ export async function db_find_user_by_id(user_id: string) {
     return new return_data(false, "Error fetching user", [error]);
   }
 }
+
+//delete user by id. Taking user_id as sting as parameter
 export async function db_delete_user_by_id(user_id: string) {
   const query = `
       DELETE FROM users WHERE id = $1 RETURNING *;
     `;
 
   try {
-    // Execute the query to delete the user and return the deleted row
     const result = await db.query(query, [user_id]);
 
-    // If a row is deleted, the result will contain that deleted row
     if (result.rows.length > 0) {
-      console.log("User deleted:", result.rows[0]);
       return new return_data(true, "User deleted successfully", [
         result.rows[0],
       ]);
     } else {
-      // If no rows are deleted, it means the user was not found
       return new return_data(false, "User not found", []);
     }
   } catch (error) {
@@ -65,6 +63,8 @@ export async function db_delete_user_by_id(user_id: string) {
   }
 }
 
+//For purpose of login. This only getting username as a string as paramater
+//TODO:Makesure in database username unique
 export async function db_login_user(username: string) {
   const query = `
       SELECT id, username, password FROM users WHERE username = $1;

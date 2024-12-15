@@ -1,68 +1,46 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@layer components {
+  /* Sidebar Icon */
+  .sidebar-icon {
+    @apply relative flex items-center 
+    justify-center h-12 w-12 mt-2 
+    mb-2 mx-auto shadow-lg 
+    bg-primary-bg text-accent-text
+    hover:bg-tertiary-bg hover:text-primary-text 
+    rounded-3xl hover:rounded-xl transition-all 
+    duration-300 ease-linear cursor-pointer;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
   }
-  a:hover {
-    color: #747bff;
+
+  /* Sidebar Tooltip */
+  .sidebar-tooltip {
+    @apply absolute w-auto
+    p-2 min-w-max left-14
+    rounded-md shadow-md
+    text-white bg-gray-900
+    text-xs font-bold 
+    transition-all duration-100 
+    scale-0 origin-left group-hover:scale-100;
   }
-  button {
-    background-color: #f9f9f9;
+
+  /* Note Button */
+  .note-button {
+    @apply relative flex items-center 
+    justify-center h-12 w-32 shadow-lg
+    bg-secondary-bg text-primary-text
+     hover:bg-accent-text hover:text-primary-bg
+      rounded-3xl hover:rounded-xl transition-all
+       duration-300 ease-linear cursor-pointer;
   }
+}
+
+::-webkit-scrollbar {
+    background-color: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary-bg dark:bg-accent-text;
 }

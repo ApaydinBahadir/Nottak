@@ -9,7 +9,7 @@ import helmet from "helmet";
 import User from "./entities/user";
 const session = require("express-session");
 
-// Load environment variables
+// Load environment variables form .env
 dotenv.config();
 
 // Initialize express app
@@ -19,6 +19,7 @@ const port = process.env.PORT || 3000;
 // CORS options
 const corsOptions = { credentials: true, origin: process.env.URL || "*" };
 
+// For authentication
 app.use(
   session({
     secret: "güvenli-bir-anahtar",
@@ -29,6 +30,7 @@ app.use(
   })
 );
 
+// Authentication session data
 declare module "express-session" {
   interface SessionData {
     user: { id: string; username: string };
@@ -37,12 +39,14 @@ declare module "express-session" {
 
 export {};
 
-// Middleware setup
+// For security Helmet
 app.use(
   helmet({ contentSecurityPolicy: process.env.NODE_ENV === "production" })
 );
 app.use(cors(corsOptions));
 app.use(json());
+
+// Saving log to database
 app.use(
   morgan((tokens, req, res) => {
     const logData = {
@@ -64,8 +68,7 @@ app.use(
       console.error("Failed to save log:", err);
     });
 
-    // Return null or empty string to suppress console output
-    return null; // Alternatively, return "" to be explicit
+    return null;
   })
 );
 
@@ -78,9 +81,11 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello, this is the backend server for the nottak app");
 });
 
+// Not configured routes
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
+
 
 app.use((err: Error, req: Request, res: Response, next: Function) => {
   const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
