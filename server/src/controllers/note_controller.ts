@@ -9,15 +9,15 @@ import {
 } from "../data_layer/note_data_layer";
 
 export async function create_note(req: Request, res: Response): Promise<any> {
-  const { title, content, user_id } = req.body;
+  const { title, content, user_id, tags } = req.body;
 
-  if (!title || !content || !user_id) {
-    return res
-      .status(400)
-      .json({ message: "All fields are required. \n title, content, user_id" });
+  if (!title || !content || !user_id || tags) {
+    return res.status(400).json({
+      message: "All fields are required. \n title, content, user_id, tags",
+    });
   }
 
-  const note = new Note(title, content, user_id, new Date(), new Date(), []);
+  const note = new Note(title, content, user_id, new Date(), new Date(), tags);
 
   try {
     const result = await db_create_note(note);
@@ -42,9 +42,9 @@ export async function list_by_user_id(
   req: Request,
   res: Response
 ): Promise<any> {
-  const { user_id, date_start, date_end, tags, title } = req.query;
+  const { user_id, date_start, date_end, tags, title } = req.body;
 
-  // Validate user_id
+  // Validate user_id (this is the only required field)
   if (!user_id || typeof user_id !== "string") {
     return res
       .status(400)
@@ -54,6 +54,7 @@ export async function list_by_user_id(
   let parsedDateStart: Date | undefined;
   let parsedDateEnd: Date | undefined;
 
+  // Optional: Validate and parse date_start if provided
   if (date_start) {
     parsedDateStart = new Date(date_start as string);
     if (isNaN(parsedDateStart.getTime())) {
@@ -61,16 +62,37 @@ export async function list_by_user_id(
     }
   }
 
+  // Optional: Validate and parse date_end if provided
   if (date_end) {
     parsedDateEnd = new Date(date_end as string);
     if (isNaN(parsedDateEnd.getTime())) {
       return res.status(400).json({ message: "Invalid end date provided." });
     }
+
+    // Optional: Validate that date_end is not earlier than date_start
+    if (parsedDateStart && parsedDateEnd < parsedDateStart) {
+      return res.status(400).json({
+        message: "End date cannot be earlier than the start date.",
+      });
+    }
   }
 
-  const tagArray: string[] = tags ? (tags as string).split(",") : [];
+  // Optional: Parse tags if provided
+  let tagArray: string[] = [];
+  if (tags) {
+    if (Array.isArray(tags)) {
+      tagArray = tags; // Already an array, so use it as is
+    } else if (typeof tags === "string") {
+      tagArray = tags.split(","); // Split comma-separated string
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Tags must be a string or an array." });
+    }
+  }
 
   try {
+    // Call to the database function
     const result = await db_list_notes(user_id as string, {
       date_start: parsedDateStart,
       date_end: parsedDateEnd,
@@ -79,19 +101,24 @@ export async function list_by_user_id(
     });
 
     if (result.success) {
-      return res
-        .status(200)
-        .json({ message: "Notes listed successfully", data: result.data });
+      // Send a successful response, even if no notes are found
+      return res.status(200).json({
+        message: result.data.length
+          ? "Notes listed successfully"
+          : "No notes found.",
+        data: result.data,
+      });
     } else {
-      return res
-        .status(404)
-        .json({ message: "No notes found for the given criteria." });
+      return res.status(404).json({
+        message: "Failed to retrieve notes from the database.",
+      });
     }
   } catch (error) {
     console.error("Error retrieving notes:", error);
-    return res
-      .status(500)
-      .json({ message: "An unexpected error occurred.", error });
+    return res.status(500).json({
+      message: "An unexpected error occurred while fetching notes.",
+      error,
+    });
   }
 }
 
@@ -149,7 +176,7 @@ export async function delete_by_id(req: Request, res: Response): Promise<any> {
 
 export async function update_note(req: Request, res: Response): Promise<any> {
   // Destructure required fields from the request body
-  const { note_id, content, date_start, date_end, tags, title } = req.body;
+  const { note_id, content, tags, title } = req.body;
 
   // Validate that note_id is provided and is a string
   if (!note_id || typeof note_id !== "string") {
@@ -158,29 +185,7 @@ export async function update_note(req: Request, res: Response): Promise<any> {
     });
   }
 
-  let parsedDateStart: Date | undefined;
-  let parsedDateEnd: Date | undefined;
   let tagArray: string[] = [];
-
-  // Parse and validate `date_start` if it's provided
-  if (date_start) {
-    parsedDateStart = new Date(date_start);
-    if (isNaN(parsedDateStart.getTime())) {
-      return res.status(400).json({
-        message: "Invalid date_start provided.",
-      });
-    }
-  }
-
-  // Parse and validate `date_end` if it's provided
-  if (date_end) {
-    parsedDateEnd = new Date(date_end);
-    if (isNaN(parsedDateEnd.getTime())) {
-      return res.status(400).json({
-        message: "Invalid date_end provided.",
-      });
-    }
-  }
 
   // Safely parse tags into a string array
   if (tags && typeof tags === "string") {
@@ -192,8 +197,6 @@ export async function update_note(req: Request, res: Response): Promise<any> {
     const result = await db_update_note(note_id as string, {
       content: content as string,
       title: title as string,
-      date_start: parsedDateStart,
-      date_end: parsedDateEnd,
       tags: tagArray,
     });
 

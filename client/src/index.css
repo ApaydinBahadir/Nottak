@@ -12,7 +12,6 @@
     hover:bg-tertiary-bg hover:text-primary-text 
     rounded-3xl hover:rounded-xl transition-all 
     duration-300 ease-linear cursor-pointer;
-
   }
 
   /* Sidebar Tooltip */
@@ -38,9 +37,9 @@
 }
 
 ::-webkit-scrollbar {
-    background-color: transparent;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    @apply bg-primary-bg dark:bg-accent-text;
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary-bg dark:bg-accent-text;
 }

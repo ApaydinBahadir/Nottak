@@ -6,6 +6,7 @@ import {
   db_login_user,
 } from "../data_layer/user_data_layer";
 import User from "../entities/user";
+import bcrypt from "bcrypt";
 
 // Create a new user. Taking username,email,password in body
 export async function create_user(req: Request, res: Response): Promise<any> {
@@ -35,7 +36,6 @@ export async function create_user(req: Request, res: Response): Promise<any> {
 }
 
 // Find a user by ID takes user_id as query.
-//TODO:Try to make it paramater
 export async function find_user_by_id(
   req: Request,
   res: Response
@@ -65,7 +65,6 @@ export async function find_user_by_id(
 }
 
 // Delete a user by ID. Takes user_id from query.
-//TODO:Try to make it paramater?
 export async function delete_by_user_id(
   req: Request,
   res: Response
@@ -98,31 +97,34 @@ export async function delete_by_user_id(
   }
 }
 
-//Make sure user get login and start session for user.
-//Takes username, password as body
+// Make sure user gets logged in and starts session for user.
+// Takes email and password as body
 export async function login_user(req: Request, res: Response): Promise<any> {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  if (!username || !password) {
+  if (!email || !password) {
     return res
       .status(400)
-      .json({ message: "Please provide both username and password" });
+      .json({ message: "Please provide both email and password" });
   }
 
   try {
-    const userResponse = await db_login_user(username);
+    const userResponse = await db_login_user(email);
 
     if (!userResponse.success || !userResponse.data.length) {
-      return res.status(401).json({ message: "Invalid username or password" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const user = userResponse.data[0];
 
-    //TODO:password Hash
-    if (password !== user.password) {
-      return res.status(401).json({ message: "Invalid username or password" });
+    // Use bcrypt to compare the plain password with the stored hashed password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    // Successful login: set session and return the user details
     req.session.user = { id: user.id, username: user.username };
 
     return res.status(200).json({
@@ -133,4 +135,52 @@ export async function login_user(req: Request, res: Response): Promise<any> {
     console.error("Login error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
+}
+
+export async function auth_check(req: Request, res: Response): Promise<any> {
+  if (req.session.user) {
+    res.status(200).json({ authenticated: true, user: req.session.user });
+  } else {
+    res.status(401).json({ authenticated: false });
+  }
+}
+
+export async function logout(req: Request, res: Response): Promise<any> {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Error destroying session:", err);
+      return res.status(500).json({ message: "Logout failed" });
+    }
+    res.clearCookie("connect.sid"); // Clear the session cookie
+    res.status(200).json({ message: "Logout successful" });
+  });
+}
+
+export async function change_password(req: Request, res: Response) {
+  const { id, password, new_password } = req.body;
+
+  // if (!id || !password || !new_password) {
+  //   return res
+  //     .status(400)
+  //     .json({
+  //       message: "User ID, current password, and new password are required",
+  //     });
+  // }
+
+  // try {
+  //   // Hash the new password before storing
+  //   const hashedNewPassword = await bcrypt.hash(new_password, 10);
+
+  //   // Logic to update the password in your database goes here
+  //   const result = await db_update_user_password(id, hashedNewPassword);
+
+  //   if (result.success) {
+  //     return res.status(200).json({ message: "Password changed successfully" });
+  //   } else {
+  //     return res.status(500).json({ message: "Failed to change password" });
+  //   }
+  // } catch (error) {
+  //   console.error("Error changing password:", error);
+  //   return res.status(500).json({ message: "Internal server error" });
+  // }
 }

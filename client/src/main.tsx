@@ -6,20 +6,58 @@ import LoginPage from "./pages/LoginPage";
 import NoteListPage from "./pages/NoteListPage";
 import UserPage from "./pages/UserPage";
 import NotePage from "./pages/NotePage";
-import RegisterPage from "./pages/RegistarPage";
+import RegisterPage from "./pages/RegisterPage";
+import { AuthProvider } from "./hooks/Auth";
+import Sidebar from "./component/Sidebar";
+
+const Layout = ({ children }: { children: React.ReactNode }) => (
+  <div>
+    <Sidebar />
+    <main>{children}</main>
+  </div>
+);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <div className="flex">
+      <AuthProvider>
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/notes" element={<NoteListPage />} />
-          <Route path="/user" element={<UserPage />} />
-          <Route path="/note/:id" element={<NotePage />} />
+          <Route
+            path="/notes"
+            element={
+              <Layout>
+                <NoteListPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/user"
+            element={
+              <Layout>
+                <UserPage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/note/:id"
+            element={
+              <Layout>
+                <NotePage />
+              </Layout>
+            }
+          />
+          <Route
+            path="/note"
+            element={
+              <Layout>
+                <NotePage />
+              </Layout>
+            }
+          />
         </Routes>
-      </div>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>
 );

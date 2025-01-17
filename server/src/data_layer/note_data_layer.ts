@@ -3,24 +3,32 @@ import return_data from "../utils/return_data";
 import Note from "../entities/note";
 
 const db = Database.getInstance();
-
-//Create notes in database. It is takes notes entity as parameter
 export async function db_create_note(note: Note) {
   const query = `
-  INSERT INTO notes (title, content, created_at, updated_at, user_id)
-  VALUES ($1, $2, NOW(), NOW(), $3)
+  INSERT INTO notes (title, content, created_at, updated_at, user_id, tags)
+  VALUES ($1, $2, NOW(), NOW(), $3, $4)
   RETURNING id;
 `;
+
   try {
+    // Execute the query to insert the note and get the returned id
     const result = await db.query(query, [
       note.title,
       note.content,
       note.user_id,
+      note.tags,
     ]);
-    return new return_data(true, "Note Created", []);
+
+    // If the result is successful, return the ID of the created note
+    if (result.rows.length > 0) {
+      const noteId = result.rows[0].id;
+      return new return_data(true, "Note Created", [{ note_id: noteId }]);
+    } else {
+      return new return_data(false, "Failed to create note", []);
+    }
   } catch (error) {
     console.error("Error creating note:", error);
-    return new return_data(false, "Error wher note created", [error]);
+    return new return_data(false, "Error where note was created", [error]);
   }
 }
 
@@ -124,15 +132,11 @@ export async function db_list_notes(
 //title:string
 //tags:string[]
 //title:string
-//date_start:Date
-//date_end:Date
 export async function db_update_note(
   note_id: string,
   options?: {
     content?: string;
     title?: string;
-    date_start?: Date | null;
-    date_end?: Date | null;
     tags?: string[] | null;
   }
 ): Promise<any> {
@@ -141,23 +145,19 @@ export async function db_update_note(
       SET 
         content = COALESCE($1, content),
         title = COALESCE($2, title),
-        date_start = COALESCE($3, date_start),
-        date_end = COALESCE($4, date_end),
-        tags = COALESCE($5, tags),
+        tags = COALESCE($3, tags),
         updated_at = NOW()
-      WHERE id = $6
+      WHERE id = $4
       RETURNING *;
     `;
 
   try {
-    // dynamic conditions dealed by COALESCE
+    // dynamic conditions handled by COALESCE
     const result = await db.query(query, [
       options?.content || null,
       options?.title || null,
-      options?.date_start || null,
-      options?.date_end || null,
       options?.tags ? JSON.stringify(options.tags) : null,
-      note_id,
+      note_id, // Make sure $4 corresponds to the note_id
     ]);
 
     if (result.rows.length) {

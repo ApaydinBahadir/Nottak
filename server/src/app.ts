@@ -6,7 +6,6 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import save_log from "./utils/save_log";
 import helmet from "helmet";
-import User from "./entities/user";
 const session = require("express-session");
 
 // Load environment variables form .env
@@ -17,7 +16,10 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // CORS options
-const corsOptions = { credentials: true, origin: process.env.URL || "*" };
+const corsOptions = {
+  credentials: true,
+  origin: process.env.URL || "http://localhost:5173",
+};
 
 // For authentication
 app.use(
@@ -25,11 +27,12 @@ app.use(
     secret: "güvenli-bir-anahtar",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === "production" },
+    cookie: { secure: process.env.NODE_ENV === "production", httpOnly: true }, // Only secure in production
     maxAge: 1000 * 60 * 60,
   })
 );
 
+//TODO:Redis connection will be happened.
 // Authentication session data
 declare module "express-session" {
   interface SessionData {
@@ -37,12 +40,8 @@ declare module "express-session" {
   }
 }
 
-export {};
-
 // For security Helmet
-app.use(
-  helmet({ contentSecurityPolicy: process.env.NODE_ENV === "production" })
-);
+app.use(helmet({ contentSecurityPolicy: process.env.NODE_ENV === "dev" }));
 app.use(cors(corsOptions));
 app.use(json());
 
@@ -86,14 +85,11 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-
 app.use((err: Error, req: Request, res: Response, next: Function) => {
   const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
   res.status(statusCode).json({
     message:
-      process.env.NODE_ENV === "production"
-        ? "Internal Server Error"
-        : err.message,
+      process.env.NODE_ENV === "dev" ? "Internal Server Error" : err.message,
   });
 });
 

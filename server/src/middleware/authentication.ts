@@ -1,18 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 
-// Middleware to check authentication
 export const isAuthenticated = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  console.log("req.session:", req.session);
-
   if (req.session?.user) {
-    next(); // User is logged
+    next();
   } else {
     res
-      .status(401)
+      .status(403)
       .json({ message: "Unauthorized: Please log in to access this resource" });
   }
 };
