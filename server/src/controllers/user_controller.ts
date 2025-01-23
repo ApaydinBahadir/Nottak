@@ -18,7 +18,8 @@ export async function create_user(req: Request, res: Response): Promise<any> {
     });
   }
 
-  const user = new User(username, email, password, []);
+  const hashed_password = await bcrypt.hash(password, 10);
+  const user = new User(username, email, hashed_password, []);
 
   try {
     const result = await db_create_user(user);

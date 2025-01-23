@@ -32,7 +32,6 @@ app.use(
   })
 );
 
-//TODO:Redis connection will be happened.
 // Authentication session data
 declare module "express-session" {
   interface SessionData {

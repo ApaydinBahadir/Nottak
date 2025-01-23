@@ -9,7 +9,7 @@ class Database {
 
   private constructor() {}
 
-  public static getInstance(): Pool {
+  public static async getInstance(): Promise<Pool> {
     if (!Database.instance) {
       const { DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
 
@@ -25,11 +25,16 @@ class Database {
         database: DB_NAME,
       });
 
-      Database.instance.on("connect", () => {});
+      Database.instance.on("connect", () => {
+        console.log("Database connected successfully.");
+      });
 
       Database.instance.on("error", (err) => {
         console.error("Database connection error:", err);
       });
+
+      // Create tables if they don't exist
+      await Database.createTables();
 
       // Handle process termination
       process.on("SIGTERM", async () => {
@@ -40,10 +45,9 @@ class Database {
 
     return Database.instance;
   }
-}
 
-/* Script for creating database. 
-TODO:Find a way to make databases for users(tester be specific)`
+  private static async createTables(): Promise<void> {
+    const queries = `
       CREATE TABLE IF NOT EXISTS public.logs (
         id SERIAL PRIMARY KEY,
         method character varying(10),
@@ -73,8 +77,19 @@ TODO:Find a way to make databases for users(tester be specific)`
         updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
       );
 
-      ALTER TABLE IF EXISTS public.notes ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+      ALTER TABLE IF EXISTS public.notes 
+      ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
     `;
-    */
+
+    try {
+      const pool = Database.instance;
+      await pool.query(queries);
+      console.log("Database tables created or already exist.");
+    } catch (error) {
+      console.error("Error creating database tables:", error);
+      throw error;
+    }
+  }
+}
 
 export default Database;

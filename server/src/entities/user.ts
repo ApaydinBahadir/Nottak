@@ -1,6 +1,5 @@
 import Note from "./note";
 
-//TODO: Make password hashed
 class User {
   constructor(
     public username: string,
